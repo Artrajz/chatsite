@@ -1,0 +1,61 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>chatsite</title>
+</head>
+<link rel="stylesheet" href="{% static 'plugins/bootstrap-3.4.1-dist/js/bootstrap.js' %}">
+<style>
+    .message {
+        height: 300px;
+        border: 1px solid #dddddd;
+        width: 100%;
+    }
+</style>
+
+<body>
+
+<div class="message" id="message"></div>
+<div><input type="text" placeholder="请输入" id="txt">
+    <input type="button" value="发送" onclick="sendMessage();">
+    <input type="button" value="关闭链接" onclick="closeConn();">
+</div>
+
+</body>
+<script href="{% static 'js/jquery-3.6.2.js' %}"></script>
+<script>
+    socket = new WebSocket("ws://127.0.0.1:8000/ws/{{ qq_group_num }}/");
+
+    //创建好连接之后自动触发
+    socket.onopen = function (event){
+        let tag = document.createElement("div");
+        tag.innerText = "[连接成功]";
+        document.getElementById("message").appendChild(tag)
+    }
+
+    //当websocket接收到服务端发来的消息时自动触发这个函数
+    socket.onmessage = function (event){
+        let tag = document.createElement("div");
+        tag.innerText = event.data;
+        document.getElementById("message").appendChild(tag)
+    }
+
+    socket.onclose = function (event) {
+       let tag = document.createElement("div");
+        tag.innerText = "[断开连接]";
+        document.getElementById("message").appendChild(tag)
+    }
+
+    function sendMessage() {
+        let tag = document.getElementById("txt");
+        socket.send(tag.value);
+    }
+
+    function closeConn() {
+        socket.close();
+    }
+
+</script>
+</html>
