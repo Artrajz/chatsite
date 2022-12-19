@@ -11,6 +11,8 @@ git clone https://github.com/pang-juzhong/chatsite
 # 安装依赖
 
 ```
+cd 你的项目位置
+
 pip install -r requirements.txt
 ```
 
