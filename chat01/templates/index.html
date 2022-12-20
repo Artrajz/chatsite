@@ -6,7 +6,9 @@
     <meta charset="UTF-8">
     <title>chatsite</title>
 </head>
-<link rel="stylesheet" href="{% static 'plugins/bootstrap-3.4.1-dist/js/bootstrap.js' %}">
+<script src="{% static 'js/jquery.min-3.6.2.js' %}"></script>
+<script src="{% static 'plugins/bootstrap-3.4.1-dist/js/bootstrap.min.js' %}"></script>
+<link rel="stylesheet" href="{% static 'plugins/bootstrap-3.4.1-dist/css/bootstrap.min.css' %}">
 <style>
     .message {
         height: 300px;
@@ -16,42 +18,63 @@
 </style>
 
 <body>
-
+<div class="live-status"></div>
+<div><input type="text" placeholder="请输入" id="group">
+    <input type="button" value="连接" onclick="socketConn();">
+    <input type="button" value="关闭链接" onclick="closeConn();">
+</div>
 <div class="message" id="message"></div>
 <div><input type="text" placeholder="请输入" id="txt">
     <input type="button" value="发送" onclick="sendMessage();">
-    <input type="button" value="关闭链接" onclick="closeConn();">
+
 </div>
 
 </body>
-<script href="{% static 'js/jquery-3.6.2.js' %}"></script>
 <script>
-    socket = new WebSocket("ws://127.0.0.1:8000/ws/{{ qq_group_num }}/");
 
-    //创建好连接之后自动触发
-    socket.onopen = function (event){
-        let tag = document.createElement("div");
-        tag.innerText = "[连接成功]";
-        document.getElementById("message").appendChild(tag)
+    var socket;
+
+    function socketConn() {
+        //断开旧连接，防止重复连接socket通道
+        if (socket != null && socket.readyState != 0) {
+            socket.close();
+        }
+
+        let group = document.getElementById("group")
+        socket = new WebSocket("ws://127.0.0.1:8000/group/" + group.value + "/")
+
+        //创建好连接之后自动触发
+        socket.onopen = function (event) {
+            let group = document.getElementById("group")
+            let tag = document.createElement("div");
+            tag.innerText = "[连接成功 group:" + group.value + "]";
+            document.getElementById("message").appendChild(tag)
+        }
+
+        //当websocket接收到服务端发来的消息时自动触发这个函数
+        socket.onmessage = function (event) {
+            let tag = document.createElement("div");
+            msg = JSON.parse(event.data);
+            tag.innerText = msg.message;
+            document.getElementById("message").appendChild(tag)
+        }
+
+        socket.onclose = function (event) {
+            let group = document.getElementById("group")
+            let tag = document.createElement("div");
+            tag.innerText = "[断开连接 group:" + group.value + "]";
+            document.getElementById("message").appendChild(tag)
+        }
     }
 
-    //当websocket接收到服务端发来的消息时自动触发这个函数
-    socket.onmessage = function (event){
-        let tag = document.createElement("div");
-        tag.innerText = event.data;
-        document.getElementById("message").appendChild(tag)
-    }
-
-    socket.onclose = function (event) {
-       let tag = document.createElement("div");
-        tag.innerText = "[断开连接]";
-        document.getElementById("message").appendChild(tag)
-    }
+    {#socket = new WebSocket("ws://127.0.0.1:8000/group/{{ qq_group_num }}/");#}
 
     function sendMessage() {
         let tag = document.getElementById("txt");
         socket.send(tag.value);
+        tag.value = ""
     }
+
 
     function closeConn() {
         socket.close();

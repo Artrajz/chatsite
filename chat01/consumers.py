@@ -1,30 +1,61 @@
+import json
+
 from channels.exceptions import StopConsumer
 from channels.generic.websocket import WebsocketConsumer
 from asgiref.sync import async_to_sync
 
 
-class ChatConsumer(WebsocketConsumer):
-    def websocket_connect(self, message):
-        # 服务端与客户端创建连接
+class ChatConsumers(WebsocketConsumer):
+    # *args, **kwargs 前者叫位置参数，后者叫关键字参数
+    def __init__(self, *args, **kwargs):
+        super().__init__(args, kwargs)
+        self.room_group_name = None
+
+    # 进行websocket连接
+    def connect(self):
+        # 获取群组ID
+        self.room_group_name = self.scope["url_route"]["kwargs"]["group"]
+
+        async_to_sync(self.channel_layer.group_add)(
+            self.room_group_name, self.channel_name
+        )
+
+        # 接受连接
         self.accept()
 
-        # 获取群号
-        self.group = self.scope['url_route']['kwargs'].get('group')
+    # 断开websocket连接
+    def disconnect(self, close_code):
+        async_to_sync(self.channel_layer.group_discard)(
+            self.room_group_name, self.channel_name
+        )
+        raise StopConsumer
 
-        # 将异步转换成同步，加入连接对象
-        async_to_sync(self.channel_layer.group_add(self.group, self.channel_name))
+    # 接收websocket的消息
+    def receive(self, text_data):
+        async_to_sync(self.channel_layer.group_send)(
+            self.room_group_name, {"type": "chat.message", "message": text_data}
+        )
 
-    def websocket_receive(self, message):
-        # 通知group内的所有客户端，执行type方法，type方法可以自己定义
-        async_to_sync(self.channel_layer.group_send)(self.group, {"type": "chat_messages", "message": message})
-
-    def chat_messages(self, event):
-        print(event)
-        text = event["message"]["text"]
-        self.send(text)
+    # channel_layer用来发送消息的函数
+    def chat_message(self, event):
+        self.send(text_data=json.dumps({"message": event["message"]}))
 
 
-    def websocket_disconnect(self, message):
-        # 断开连接时移除连接对象
-        async_to_sync(self.channel_layer.group_discard)(self.group, self.channel_name)
-        raise StopConsumer()
+class Clients:
+    pass
+
+
+class ChatConsumer(WebsocketConsumer):
+
+    def connect(self):
+        # Make a database row with our channel name
+        Clients.objects.create(channel_name=self.channel_name)
+
+    def disconnect(self, close_code):
+        # Note that in some rare cases (power loss, etc) disconnect may fail
+        # to run; this naive example would leave zombie channel names around.
+        Clients.objects.filter(channel_name=self.channel_name).delete()
+
+    def chat_message(self, event):
+        # Handles the "chat.message" event when it's sent to us.
+        self.send(text_data=event["text"])
