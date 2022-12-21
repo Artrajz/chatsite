@@ -1,6 +1,6 @@
 # chatsite
 
-结构：Django+websocket+AJAX+html
+结构：Django+websocket+AJAX
 
 
 
@@ -21,8 +21,8 @@
 │  │  __init__.py
 │  │
 │  ├─migrations
-│  │  │  0001_initial.py
-│  │  └─ __init__.py
+│  │      0001_initial.py
+│  │      __init__.py
 │  │
 │  ├─static
 │  │  ├─css
@@ -30,6 +30,7 @@
 │  │  │      bootstrap.min.css
 │  │  │      bootstrap.min.css.map
 │  │  │      font-awesome.min.css
+│  │  │      index.css
 │  │  │      login_style.css
 │  │  │      register_style.css
 │  │  │      style.css
@@ -46,22 +47,22 @@
 │  │  │      logo.jpeg
 │  │  │
 │  │  ├─js
+│  │  │      bootstrap.min.js
 │  │  │      jquery.min-3.6.2.js
 │  │  │
 │  │  └─plugins
 │  └─templates
-│         index.html
-│         login.html
-│         register.html
-│  
+│          index.html
+│          login.html
+│          register.html
 │
 └─chatsite
-    │  asgi.py
-    │  routings.py
-    │  settings.py
-    │  urls.py
-    │  wsgi.py
-    └─ __init__.py
+        asgi.py
+        routings.py
+        settings.py
+        urls.py
+        wsgi.py
+        __init__.py
 ```
 
 
@@ -69,7 +70,7 @@
 ### 拷贝项目到本地
 
 ```
-git clone https://github.com/pang-juzhong/chatsite
+git clone https://github.com/pang-juzhong/chatsite.git
 ```
 
 ### 创建数据库
