@@ -4,6 +4,7 @@ from channels.exceptions import StopConsumer
 from channels.generic.websocket import WebsocketConsumer
 from asgiref.sync import async_to_sync
 
+connectors = {}
 
 class ChatConsumers(WebsocketConsumer):
     # *args, **kwargs 前者叫位置参数，后者叫关键字参数
@@ -19,9 +20,14 @@ class ChatConsumers(WebsocketConsumer):
 
         # 获取用户名，需要字符串化，原本是channels.auth.UserLazyObject类型
         self.user = str(self.scope["user"])
+
+        #映射用户名和socket通道
+        connectors[self.user] = self.room_group_name
+
         async_to_sync(self.channel_layer.group_add)(
-            self.room_group_name, self.channel_name
+            connectors[self.user], self.channel_name
         )
+
 
         # 接受连接
         self.accept()
@@ -29,15 +35,16 @@ class ChatConsumers(WebsocketConsumer):
     # 断开websocket连接
     def disconnect(self, close_code):
         async_to_sync(self.channel_layer.group_discard)(
-            self.room_group_name, self.channel_name
+            connectors[self.user], self.channel_name
         )
         raise StopConsumer
 
     # 接收websocket的消息
     def receive(self, text_data):
-        message = {"username": self.user,"message":text_data}
+        data = json.loads(text_data)
+        message = {"username": self.user,"message":data["message"]}
         async_to_sync(self.channel_layer.group_send)(
-            self.room_group_name, {"type": "chat.message", "message": message}
+            connectors[data["group"]], {"type": "chat.message", "message": message}
         )
 
     # channel_layer用来发送消息的函数

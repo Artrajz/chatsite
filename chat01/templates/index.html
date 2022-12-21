@@ -26,9 +26,9 @@
         {% endif %}
     </div>
     <div class="form-inline">
-        <input type="text" class="form-control" placeholder="请输入房间号" id="group">
-        <input type="button" class="btn btn-default" value="连接" id="socketConn">
-        <input type="button" class="btn btn-default" value="关闭链接" id="closeConn">
+        <input type="text" class="form-control" placeholder="请输入群号或用户名" id="group">
+        <input type="button" class="btn btn-default" value="连接socket" id="socketConn">
+        <input type="button" class="btn btn-default" value="关闭socket" id="closeConn">
         <input type="button" class="btn btn-default" value="登录" id="login">
         <input type="button" class="btn btn-default" value="登出" id="logout">
     </div>
@@ -44,24 +44,23 @@
 
 
     var socket;
+    var session;
     var group;
-    var old_group;
 
     $(document).ready(function () {
 
         $("#socketConn").click(function () {
-            //断开旧连接，防止重复连接socket通道
-            if (socket != null && socket.readyState != 0) {
-                socket.close();
+            //防止重复连接socket通道,0未连接，1已连接，2正在关闭，3已断开
+            if (socket != null && socket.readyState == 1) {
+                return ;
             }
-            old_group = group;
-            group = $("#group").val()
-            socket = new WebSocket("ws://127.0.0.1:8000/group/" + group + "/")
+            session = "{{ session }}";
+            socket = new WebSocket("ws://127.0.0.1:8000/group/" + session + "/")
 
             //创建好连接之后自动触发
             socket.onopen = function (event) {
                 group = $("#group").val()
-                $("#message").text($("#message").text() + "[连接成功 group:" + group + "]" + "\n")
+                $("#message").text($("#message").text() + "[连接成功 session:" + session + "]" + "\n")
                 $('#message').scrollTop($('#message')[0].scrollHeight);
 
             }
@@ -77,14 +76,21 @@
 
             socket.onclose = function (event) {
                 group = $("#group").val();
-                $("#message").text($("#message").text() + "[断开连接 group:" + old_group + "]" + "\n")
+                $("#message").text($("#message").text() + "[断开连接 session:" + session + "]" + "\n")
                 $('#message').scrollTop($('#message')[0].scrollHeight);
             }
         })
 
         $("#sendMessage").click(function () {
-            socket.send($("#txt").val());
+            let message = $("#txt").val()
+            let json = JSON.stringify({
+                "message":message,
+                "group":$("#group").val(),
+            }).toString();
+            socket.send(json);
             $("#txt").val("")
+            $("#message").text($("#message").text()+"{{ username }}"+":"+message + "\n")
+            $('#message').scrollTop($('#message')[0].scrollHeight);
         })
 
         $("#closeConn").click(function () {

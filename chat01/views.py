@@ -18,6 +18,7 @@ def index(request):
     # sessionid = cookies["sessionid"]
     try:
         data["username"] = request.session["username"]
+        data["session"] = request.session.session_key
     except:
         pass
 
