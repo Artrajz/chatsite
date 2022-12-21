@@ -1,6 +1,6 @@
 # chatsite
 
-结构：Django+websocket+JQuery+html
+结构：Django+websocket+AJAX+html
 
 
 
