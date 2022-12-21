@@ -1,0 +1,27 @@
+body{
+    background-color: #eeeeee;
+}
+
+.popup-in{
+    padding-top: 20px;
+}
+
+.wrapper{
+    padding-top: 10%;
+}
+
+.container{
+    height: 380px;
+    width: 280px;
+    padding-top: 2%;
+    background-color: #ffffff;
+    border-radius: 5px;
+}
+.container h2{
+    text-align: center;
+}
+
+.form-group-btn input{
+    background-color: #07c160;
+    color: #ffffff;
+}

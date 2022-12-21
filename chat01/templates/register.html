@@ -8,10 +8,9 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- title of site -->
-    <title>Sign in</title>
+    <title>chatsite注册</title>
 
     <!-- For favicon png -->
-
     <script src="{% static 'js/jquery.min-3.6.2.js' %}"></script>
     <script src="{% static 'plugins/bootstrap-3.4.1-dist/js/bootstrap.min.js' %}"></script>
     <!--font-awesome.min.css-->
@@ -22,19 +21,18 @@
     <link rel="stylesheet" href="{% static "css/bootstrap.min.css" %}">
     <!--style.css-->
     <link rel="stylesheet" href="{% static "css/style.css" %}">
-    <!--login_style.css-->
-    <link rel="stylesheet" href="{% static "css/login_style.css" %}">
-
+    <!--register_style.css-->
+    <link rel="stylesheet" href="{% static "css/register_style.css" %}">
 
 </head>
 <body>
 <div class="wrapper">
 
-    <!-- signin begin -->
-    <section class="signin popup-in">
+    <!-- register begin -->
+    <section class="register popup-in">
         <div class="container">
             <h2>登录</h2>
-            <div class="signin-form">
+            <div class="register-form">
                 <form>
                     {% csrf_token %}
                     <div class="form-group">
@@ -45,14 +43,19 @@
                         <label for="password">密码</label>
                         <input type="password" class="form-control" name="password" id="password" placeholder="输入密码">
                     </div><!--/.form-group -->
+                    <div class="form-group">
+                        <label for="email">邮箱</label>
+                        <input type="email" class="form-control" name="email" id="email" placeholder="邮箱">
+                    </div><!--/.form-group -->
                     <div class="form-group-btn">
-                        <input type="button" class="form-control btn btn-success signin_btn" value="登录">
+                        <input type="button" class="form-control btn btn-success register_btn" value="注册">
                             <p style="color: red;" id="error"></p>
                     </div><!--/.form-group -->
+
                 </form><!--/form -->
-            </div><!--/.signin-form -->
+            </div><!--/.register-form -->
         </div><!--/.container -->
-    </section><!--/.signin -->
+    </section><!--/.register -->
 
     <!-- signin end -->
 
@@ -68,24 +71,28 @@
 
 </div>
 </body>
+
 <script>
 
-    $('.signin_btn').click(function () {
+    $('.register_btn').click(function () {
         let csrftoken = $('[name="csrfmiddlewaretoken"]').val();
         let username = $("#username").val()
         let password = $("#password").val()
+        let email = $("#email").val()
         $.ajax({
-            url: "/login/",
+            url: "/register/",
             type: "POST",
             data: {
                 "csrfmiddlewaretoken":csrftoken,
                 "username": username,
                 "password": password,
+                "email": email,
             },
             dataType: "JSON",
             success: function (data) {
                 if (data.success == '200') {
-                    window.location.href = "/index/";
+                    alert("注册成功！")
+                    window.location.href = "/login/";
                     return true
                 } else {
                     $("#error").text(data.error)
@@ -96,4 +103,5 @@
         })
     })
 </script>
+
 </html>

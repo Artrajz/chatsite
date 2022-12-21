@@ -21,8 +21,10 @@ urlpatterns = [
     path('', views.index),
     path('index/', views.index),
 
-    path('user/list/', views.user_list),
+    path('register/', views.register),
 
-    path('user/add/', views.user_add),
-    path('login/', views.login)
+    path('login/', views.login),
+
+    # path('login_auth/', views.login_auth),
+
 ]
