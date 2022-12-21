@@ -28,13 +28,14 @@ def register(request):
     else:
         user = User.objects.create_user(username = username, password = password, email = email)
 
-    if user is not None and user:
-        message["success"] = "200"
-        message["error"] = "注册成功"
-        auth.login(request, user)
-    elif user is not None and user:
-        message["success"] = "201"
-        message["error"] = "未正确输入信息"
+    if user is not None:
+        if user:
+            message["success"] = "200"
+            message["error"] = "注册成功"
+            auth.login(request, user)
+        else:
+            message["success"] = "201"
+            message["error"] = "未正确输入信息"
 
     return JsonResponse(message,content_type="application/json;charset=utf-8")
 
