@@ -9,6 +9,7 @@ class ChatConsumers(WebsocketConsumer):
     # *args, **kwargs 前者叫位置参数，后者叫关键字参数
     def __init__(self, *args, **kwargs):
         super().__init__(args, kwargs)
+        self.user = None
         self.room_group_name = None
 
     # 进行websocket连接
@@ -16,6 +17,8 @@ class ChatConsumers(WebsocketConsumer):
         # 获取群组ID
         self.room_group_name = self.scope["url_route"]["kwargs"]["group"]
 
+        # 获取用户名，需要字符串化，原本是channels.auth.UserLazyObject类型
+        self.user = str(self.scope["user"])
         async_to_sync(self.channel_layer.group_add)(
             self.room_group_name, self.channel_name
         )
@@ -32,13 +35,14 @@ class ChatConsumers(WebsocketConsumer):
 
     # 接收websocket的消息
     def receive(self, text_data):
+        message = {"username": self.user,"message":text_data}
         async_to_sync(self.channel_layer.group_send)(
-            self.room_group_name, {"type": "chat.message", "message": text_data}
+            self.room_group_name, {"type": "chat.message", "message": message}
         )
 
     # channel_layer用来发送消息的函数
     def chat_message(self, event):
-        self.send(text_data=json.dumps({"message": event["message"]}))
+        self.send(text_data=json.dumps(event["message"]))
 
 
 class Clients:

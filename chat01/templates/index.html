@@ -7,78 +7,111 @@
     <title>chatsite</title>
 </head>
 <script src="{% static 'js/jquery.min-3.6.2.js' %}"></script>
-<script src="{% static 'plugins/bootstrap-3.4.1-dist/js/bootstrap.min.js' %}"></script>
-<link rel="stylesheet" href="{% static 'plugins/bootstrap-3.4.1-dist/css/bootstrap.min.css' %}">
-<style>
-    .message {
-        height: 300px;
-        border: 1px solid #dddddd;
-        width: 100%;
-    }
-</style>
+<script src="{% static 'js/bootstrap.min.js' %}"></script>
+<link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/index.css' %}">
 
 <body>
-<div class="live-status"></div>
-<div><input type="text" placeholder="请输入" id="group">
-    <input type="button" value="连接" onclick="socketConn();">
-    <input type="button" value="关闭链接" onclick="closeConn();">
+{% csrf_token %}
+<div class="container">
+    <div class="live-status">
+        {% if username is not None %}
+            <span>状态:</span>
+            <span style="color: #07c160">在线</span>
+            <span>当前用户：</span>
+            <span>{{ username }}</span>
+        {% else %}
+            <span>状态:</span>
+            <span style="color: red">离线</span>
+        {% endif %}
+    </div>
+    <div class="form-inline">
+        <input type="text" class="form-control" placeholder="请输入房间号" id="group">
+        <input type="button" class="btn btn-default" value="连接" id="socketConn">
+        <input type="button" class="btn btn-default" value="关闭链接" id="closeConn">
+        <input type="button" class="btn btn-default" value="登录" id="login">
+        <input type="button" class="btn btn-default" value="登出" id="logout">
+    </div>
+    <textarea class="message" id="message" readonly></textarea>
+    <div><textarea type="text" class="form-control" placeholder="请输入" id="txt" rows="3"></textarea>
+        <input type="button" class="btn btn-default" value="发送" id="sendMessage">
+    </div>
 </div>
-<div class="message" id="message"></div>
-<div><input type="text" placeholder="请输入" id="txt">
-    <input type="button" value="发送" onclick="sendMessage();">
 
-</div>
 
 </body>
 <script>
 
+
     var socket;
+    var group;
+    var old_group;
 
-    function socketConn() {
-        //断开旧连接，防止重复连接socket通道
-        if (socket != null && socket.readyState != 0) {
+    $(document).ready(function () {
+
+        $("#socketConn").click(function () {
+            //断开旧连接，防止重复连接socket通道
+            if (socket != null && socket.readyState != 0) {
+                socket.close();
+            }
+            old_group = group;
+            group = $("#group").val()
+            socket = new WebSocket("ws://127.0.0.1:8000/group/" + group + "/")
+
+            //创建好连接之后自动触发
+            socket.onopen = function (event) {
+                group = $("#group").val()
+                $("#message").text($("#message").text() + "[连接成功 group:" + group + "]" + "\n")
+                $('#message').scrollTop($('#message')[0].scrollHeight);
+
+            }
+
+            //当websocket接收到服务端发来的消息时自动触发这个函数
+            socket.onmessage = function (event) {
+                let tag = document.createElement("div");
+                msg = JSON.parse(event.data);
+                $("#message").text($("#message").text()+msg.username+":"+msg.message + "\n")
+                $('#message').scrollTop($('#message')[0].scrollHeight);
+
+            }
+
+            socket.onclose = function (event) {
+                group = $("#group").val();
+                $("#message").text($("#message").text() + "[断开连接 group:" + old_group + "]" + "\n")
+                $('#message').scrollTop($('#message')[0].scrollHeight);
+            }
+        })
+
+        $("#sendMessage").click(function () {
+            socket.send($("#txt").val());
+            $("#txt").val("")
+        })
+
+        $("#closeConn").click(function () {
             socket.close();
-        }
+        })
 
-        let group = document.getElementById("group")
-        socket = new WebSocket("ws://127.0.0.1:8000/group/" + group.value + "/")
+        $("#login").click(function () {
+            window.location.href = "/login/"
+        })
 
-        //创建好连接之后自动触发
-        socket.onopen = function (event) {
-            let group = document.getElementById("group")
-            let tag = document.createElement("div");
-            tag.innerText = "[连接成功 group:" + group.value + "]";
-            document.getElementById("message").appendChild(tag)
-        }
+        $("#logout").click(function () {
+            let csrftoken = $('[name="csrfmiddlewaretoken"]').val();
+            $.ajax({
+                url: "/logout/",
+                type: "POST",
+                data: {
+                    "csrfmiddlewaretoken": csrftoken,
+                },
+                success: function (data) {
+                    if (data.success == '200') {
+                        window.location.href = "/index/"
+                    }
+                }
+            })
+        })
+    })
 
-        //当websocket接收到服务端发来的消息时自动触发这个函数
-        socket.onmessage = function (event) {
-            let tag = document.createElement("div");
-            msg = JSON.parse(event.data);
-            tag.innerText = msg.message;
-            document.getElementById("message").appendChild(tag)
-        }
-
-        socket.onclose = function (event) {
-            let group = document.getElementById("group")
-            let tag = document.createElement("div");
-            tag.innerText = "[断开连接 group:" + group.value + "]";
-            document.getElementById("message").appendChild(tag)
-        }
-    }
-
-    {#socket = new WebSocket("ws://127.0.0.1:8000/group/{{ qq_group_num }}/");#}
-
-    function sendMessage() {
-        let tag = document.getElementById("txt");
-        socket.send(tag.value);
-        tag.value = ""
-    }
-
-
-    function closeConn() {
-        socket.close();
-    }
 
 </script>
 </html>

@@ -12,7 +12,7 @@
 
     <!-- For favicon png -->
     <script src="{% static 'js/jquery.min-3.6.2.js' %}"></script>
-    <script src="{% static 'plugins/bootstrap-3.4.1-dist/js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
     <!--font-awesome.min.css-->
     <link rel="stylesheet" href="{% static "css/font-awesome.min.css" %}">
     <!--animate.css-->
@@ -49,25 +49,18 @@
                     </div><!--/.form-group -->
                     <div class="form-group-btn">
                         <input type="button" class="form-control btn btn-success register_btn" value="注册">
-                            <p style="color: red;" id="error"></p>
+                        <p style="color: red;" id="error"></p>
                     </div><!--/.form-group -->
+                    <div class="text-center"><a href="/login/" class="link_register">登录</a></div>
+
 
                 </form><!--/form -->
             </div><!--/.register-form -->
         </div><!--/.container -->
     </section><!--/.register -->
 
-    <!-- signin end -->
+    <!-- register end -->
 
-    <!--footer copyright start -->
-    <footer class="footer-copyright">
-        <div id="scroll-Top">
-            <i class="fa fa-angle-double-up return-to-top" id="scroll-top" data-toggle="tooltip" data-placement="top"
-               title="" data-original-title="Back to Top" aria-hidden="true"></i>
-        </div><!--/.scroll-Top-->
-
-    </footer><!--/.hm-footer-copyright-->
-    <!--footer copyright  end -->
 
 </div>
 </body>
@@ -83,7 +76,7 @@
             url: "/register/",
             type: "POST",
             data: {
-                "csrfmiddlewaretoken":csrftoken,
+                "csrfmiddlewaretoken": csrftoken,
                 "username": username,
                 "password": password,
                 "email": email,

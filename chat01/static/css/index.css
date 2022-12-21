@@ -1,0 +1,13 @@
+.message {
+    height: 300px;
+    border: 1px solid #dddddd;
+    width: 100%;
+}
+
+.container {
+    width: 90%;
+}
+
+#group{
+    width: auto;
+}

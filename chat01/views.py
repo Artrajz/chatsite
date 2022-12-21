@@ -6,10 +6,23 @@ from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, HttpResponse, redirect
 
-@login_required
+
+# @login_required
 def index(request):
-    qq_group_num = request.GET.get('num')
-    return render(request,"index.html",{"qq_group_num":qq_group_num})
+    data = {}
+    # 获取群组id
+    data["qq_group_num"] = request.GET.get('num')
+
+    # 获取cookie
+    # cookies = request.COOKIES
+    # sessionid = cookies["sessionid"]
+    try:
+        data["username"] = request.session["username"]
+    except:
+        pass
+
+    return render(request, "index.html", data)
+
 
 def register(request):
     if request.method == "GET":
@@ -26,7 +39,7 @@ def register(request):
         message["success"] = "202"
         message["error"] = "用户名已存在"
     else:
-        user = User.objects.create_user(username = username, password = password, email = email)
+        user = User.objects.create_user(username=username, password=password, email=email)
 
     if user is not None:
         if user:
@@ -37,8 +50,7 @@ def register(request):
             message["success"] = "201"
             message["error"] = "未正确输入信息"
 
-    return JsonResponse(message,content_type="application/json;charset=utf-8")
-
+    return JsonResponse(message, content_type="application/json;charset=utf-8")
 
 
 def login(request):
@@ -50,6 +62,8 @@ def login(request):
     message["error"] = ""
     username = request.POST.get("username")
     password = request.POST.get("password")
+    # 将username存入session中
+    request.session["username"] = username
     user = auth.authenticate(username=username, password=password)
 
     if user:
@@ -61,3 +75,11 @@ def login(request):
         message["error"] = "用户名或密码错误"
     return JsonResponse(message, json_dumps_params={'ensure_ascii': False})
 
+
+def logout(request):
+    if request.method == "POST":
+        request.session.flush()
+        request.session["username"] = None
+        message = {}
+        message["success"] = "200"
+        return JsonResponse(message, json_dumps_params={'ensure_ascii': False})
