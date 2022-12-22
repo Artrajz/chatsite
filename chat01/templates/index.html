@@ -38,12 +38,12 @@
     <div class="user_list">
         <div>好友列表</div>
         {% for i in contactors %}
-            <div class="talker_list" value="{{ i.0 }}">{{ i.1 }}</div>
+            <input type="button" class="talker_list btn btn-default" title="{{ i.0 }}" name="1" value="{{ i.1 }}">
         {% endfor %}
 
         <div>群组列表</div>
         {% for i in groups %}
-            <div class="talker_list" value="{{ i.0 }}">{{ i.1 }}</div>
+            <input type="button" class="talker_list btn btn-default" title="{{ i.0 }}" name="2" value="{{ i.1 }}">
         {% endfor %}
 
 
@@ -60,7 +60,8 @@
     var socket;
     var session;
     var talker;
-    
+    var talker_type;
+
     $(document).ready(function () {
 
         $("#socketConn").click(function () {
@@ -175,6 +176,7 @@
             let message = $("#txt").val()
             let json = JSON.stringify({
                 "message": message,
+                "talker_type":talker_type,
                 "talker": talker,
             }).toString();
             socket.send(json);
@@ -208,8 +210,8 @@
         })
 
         $(".talker_list").click(function () {
-            talker = $(this).text()
-            console.log(talker)
+            talker = $(this).attr("title")
+            talker_type = $(this).attr("name")
         })
     })
 

@@ -4,10 +4,12 @@ import json
 from channels.exceptions import StopConsumer
 from channels.generic.websocket import WebsocketConsumer
 from asgiref.sync import async_to_sync
+from django.contrib.auth import get_user_model
 
 from chat01.models import message
 from django.contrib.auth.models import User
 
+User = get_user_model()
 connectors = {}
 
 class ChatConsumers(WebsocketConsumer):
@@ -61,9 +63,9 @@ class ChatConsumers(WebsocketConsumer):
 
         #消息存入数据库
         db_message = message(
-            user_id=User.objects.get(username=self.user).id,
-            talker_type=1,
-            talker_id = User.objects.get(username=talker).id,
+            user_id = User.objects.get(username=self.user).id,
+            talker_type = data["talker_type"],
+            talker_id = talker,
             create_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"),
             content = data["message"],
         )

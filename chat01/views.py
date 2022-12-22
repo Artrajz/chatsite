@@ -7,8 +7,6 @@ from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, HttpResponse, redirect
 from chat01.models import contactors
 
-from requests import cookies
-
 from chat01.models import *
 
 User = get_user_model()
