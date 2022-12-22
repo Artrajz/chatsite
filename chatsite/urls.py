@@ -24,7 +24,8 @@ urlpatterns = [
     path('register/', views.register),
 
     path('login/', views.login),
-    path('accounts/login/', views.login),
+    path('addTalker/', views.addTalker),
+    path('create_group/',views.create_group),
 
     path('logout/', views.logout),
 

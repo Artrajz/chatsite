@@ -76,6 +76,8 @@ git clone https://github.com/pang-juzhong/chatsite.git
 ### 创建数据库
 
 ```
+创建一个叫做chatsite的数据库
+
 cd 你的项目位置
 
 python manage.py makemigrations

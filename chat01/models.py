@@ -1,5 +1,9 @@
+from django.conf import settings
 from django.db import models
+from django.contrib.auth.models import AbstractUser
 
+class users(AbstractUser):
+    phone = models.BigIntegerField(null=True)
 
 class group_list(models.Model):
     group_id = models.AutoField(primary_key=True)
@@ -13,7 +17,7 @@ class group(models.Model):
 
 class contactors(models.Model):
     user_id = models.IntegerField()
-    friend_id = models.IntegerField()
+    friend_id = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,default="")
 
 
 class message(models.Model):
@@ -22,5 +26,7 @@ class message(models.Model):
     talker_id = models.IntegerField()
     create_time = models.DateTimeField()
     content = models.TextField()
+
+
 
 

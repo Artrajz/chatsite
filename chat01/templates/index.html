@@ -27,10 +27,26 @@
     </div>
     <div class="form-inline">
         <input type="text" class="form-control" placeholder="请输入群号或用户名" id="talker">
+        <input type="button" class="btn btn-default" value="添加好友" id="addTalker_type1">
+        <input type="button" class="btn btn-default" value="添加群组" id="addTalker_type2">
+        <input type="button" class="btn btn-default" value="创建群组" id="create_group">
         <input type="button" class="btn btn-default" value="连接socket" id="socketConn">
         <input type="button" class="btn btn-default" value="关闭socket" id="closeConn">
         <input type="button" class="btn btn-default" value="登录" id="login">
         <input type="button" class="btn btn-default" value="登出" id="logout">
+    </div>
+    <div class="user_list">
+        <div>好友列表</div>
+        {% for i in contactors %}
+            <div class="talker_list" value="{{ i.0 }}">{{ i.1 }}</div>
+        {% endfor %}
+
+        <div>群组列表</div>
+        {% for i in groups %}
+            <div class="talker_list" value="{{ i.0 }}">{{ i.1 }}</div>
+        {% endfor %}
+
+
     </div>
     <textarea class="message" id="message" readonly></textarea>
     <div><textarea type="text" class="form-control" placeholder="请输入" id="txt" rows="3"></textarea>
@@ -41,18 +57,16 @@
 
 </body>
 <script>
-
-
     var socket;
     var session;
     var talker;
-
+    
     $(document).ready(function () {
 
         $("#socketConn").click(function () {
             //防止重复连接socket通道,0未连接，1已连接，2正在关闭，3已断开
             if (socket != null && socket.readyState == 1) {
-                return ;
+                return;
             }
             session = "{{ session }}";
             socket = new WebSocket("ws://127.0.0.1:8000/channel/" + session + "/")
@@ -69,7 +83,7 @@
             socket.onmessage = function (event) {
                 let tag = document.createElement("div");
                 msg = JSON.parse(event.data);
-                $("#message").text($("#message").text()+msg.username+":"+msg.message + "\n")
+                $("#message").text($("#message").text() + msg.username + ":" + msg.message + "\n")
                 $('#message').scrollTop($('#message')[0].scrollHeight);
 
             }
@@ -80,15 +94,92 @@
             }
         })
 
+        $("#addTalker_type1").click(function (data) {
+            let csrftoken = $('[name="csrfmiddlewaretoken"]').val();
+            $.ajax({
+                url: "/addTalker/",
+                type: "POST",
+                data: {
+                    "csrfmiddlewaretoken": csrftoken,
+                    "user_id": "{{ user_id }}",
+                    "talker_type": 1,
+                    "talker": $("#talker").val(),
+                },
+                success: function (data) {
+                    if (data.success == '200') {
+                        alert("添加成功！")
+                    } else if (data.success == '201') {
+                        alert("添加失败！")
+                    } else if (data.success == '202') {
+                        alert("不能为空！")
+                    } else if (data.success == '203') {
+                        alert("已经是好友！")
+                    } else if (data.success == '204') {
+                        alert("找不到该联系人！")
+                    }
+                }
+            })
+        })
+
+        $("#addTalker_type2").click(function () {
+            let csrftoken = $('[name="csrfmiddlewaretoken"]').val();
+            $.ajax({
+                url: "/addTalker/",
+                type: "POST",
+                data: {
+                    "csrfmiddlewaretoken": csrftoken,
+                    "user_id": "{{ user_id }}",
+                    "talker_type": 2,
+                    "talker": $("#talker").val(),
+                },
+                success: function (data) {
+                    if (data.success == '200') {
+                        alert("添加成功！")
+                    } else if (data.success == '201') {
+                        alert("添加失败！")
+                    } else if (data.success == '202') {
+                        alert("不能为空！")
+                    } else if (data.success == '203') {
+                        alert("已经在群组里了！")
+                    } else if (data.success == '204') {
+                        alert("找不到该群组！")
+                    }
+                }
+            })
+        })
+
+        $("#create_group").click(function () {
+            let csrftoken = $('[name="csrfmiddlewaretoken"]').val();
+            $.ajax({
+                url: "/create_group/",
+                type: "POST",
+                data: {
+                    "csrfmiddlewaretoken": csrftoken,
+                    "group_name": $("#talker").val(),
+                },
+                success: function (data) {
+                    if (data.success == '200') {
+                        alert("成功创建群组：" + $("#talker").val())
+                    } else if (data.success == '201') {
+                        alert("创建失败！")
+                    } else if (data.success == '202') {
+                        alert("不能为空！")
+                    } else if (data.success == '203') {
+                        alert("该群组已存在！")
+                    }
+                }
+            })
+        })
+
         $("#sendMessage").click(function () {
             let message = $("#txt").val()
             let json = JSON.stringify({
-                "message":message,
-                "talker":$("#talker").val(),
+                "message": message,
+                "talker": talker,
             }).toString();
             socket.send(json);
             $("#txt").val("")
-            $("#message").text($("#message").text()+"{{ username }}"+":"+message + "\n")
+            $("#message").text($("#message").text() + "{{ username }}" + ":" + message + "\n")
             $('#message').scrollTop($('#message')[0].scrollHeight);
         })
 
@@ -114,6 +205,11 @@
                     }
                 }
             })
+        })
+
+        $(".talker_list").click(function () {
+            talker = $(this).text()
+            console.log(talker)
         })
     })
 

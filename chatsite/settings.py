@@ -133,6 +133,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 #     }
 # }
 
+#redis
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
@@ -142,4 +143,4 @@ CHANNEL_LAYERS = {
     },
 }
 
-# AUTH_USER_MODEL = 'chat01.auth_user'
+AUTH_USER_MODEL = 'chat01.Users'

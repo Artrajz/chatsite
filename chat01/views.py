@@ -1,26 +1,45 @@
 import json
 
 from django.contrib import auth
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, HttpResponse, redirect
+from chat01.models import contactors
+
+from requests import cookies
+
+from chat01.models import *
+
+User = get_user_model()
 
 
-# @login_required
 def index(request):
     data = {}
-    # 获取群组id
-    data["qq_group_num"] = request.GET.get('num')
 
-    # 获取cookie
-    # cookies = request.COOKIES
-    # sessionid = cookies["sessionid"]
-    try:
-        data["username"] = request.session["username"]
-        data["session"] = request.session.session_key
-    except:
-        pass
+    # 登录状态
+    if request.user.is_authenticated:
+        # 获取当前用户名
+        username = str(request.user)
+        user_id = User.objects.get(username=username).id
+        # 获取好友数据
+        friend = contactors.objects.filter(user_id=user_id)
+        # 获取群组数据
+        groups = group.objects.filter(user_id=user_id)
+        # 获取cookie
+        cookies = request.COOKIES
+        sessionid = cookies["sessionid"]
+
+        # 数据
+        data["username"] = username
+        data["user_id"] = user_id
+        data["session"] = sessionid
+        data["contactors"] = []
+        for item in friend:
+            data["contactors"].append([item.friend_id.id, item.friend_id.username])
+        data["groups"] = []
+        for item in groups:
+            data["groups"].append([item.group_id_id, item.group_id.group_name])
 
     return render(request, "index.html", data)
 
@@ -83,4 +102,79 @@ def logout(request):
         request.session["username"] = None
         message = {}
         message["success"] = "200"
+        return JsonResponse(message, json_dumps_params={'ensure_ascii': False})
+
+
+def addTalker(request):
+    if request.method == "POST":
+        message = {}
+        if request.POST.get("talker"):
+            if request.POST.get("talker_type") == "1":
+
+                user_id = request.POST.get("user_id")
+
+                # 是否能找到该联系人
+                try:
+                    friend_id = User.objects.get(username=request.POST.get("talker")).id
+                except:
+                    message["success"] = "204"
+                    return JsonResponse(message, json_dumps_params={'ensure_ascii': False})
+
+                # 如果已经是好友了
+                if contactors.objects.filter(user_id=user_id, friend_id=friend_id).count() > 0:
+                    message["success"] = "203"
+                else:
+                    db_contactors = contactors(
+                        user_id=user_id,
+                        friend_id_id=friend_id,
+                    )
+                    db_contactors.save()
+                    message["success"] = "200"
+            elif request.POST.get("talker_type") == "2":
+                user_id = request.POST.get("user_id")
+
+                # 是否能找到该群组
+                try:
+                    group_id = group_list.objects.get(group_name=request.POST.get("talker")).group_id
+                except:
+                    message["success"] = "204"
+                    return JsonResponse(message, json_dumps_params={'ensure_ascii': False})
+
+                # 如果已经在群组里了
+                if group.objects.filter(user_id=user_id, group_id_id=group_id).count() > 0:
+                    message["success"] = "203"
+                else:
+                    db_group = group(
+                        user_id=user_id,
+                        group_id_id=group_id,
+                    )
+                    db_group.save()
+                    message["success"] = "200"
+
+        elif request.POST.get("talker") == "":
+            message["success"] = "202"
+        else:
+            message["success"] = "201"
+        return JsonResponse(message, json_dumps_params={'ensure_ascii': False})
+
+
+def create_group(request):
+    if request.method == "POST":
+        message = {}
+
+        message["success"] = "201"
+
+        group_name = request.POST.get("group_name")
+
+        if request.POST.get("group_name") == "":
+            message["success"] = "202"
+        elif group_list.objects.filter(group_name=group_name).count() > 0:
+            message["success"] = "203"
+        else:
+            db_group = group_list(
+                group_name=group_name,
+            )
+            db_group.save()
+            message["success"] = "200"
+
         return JsonResponse(message, json_dumps_params={'ensure_ascii': False})
