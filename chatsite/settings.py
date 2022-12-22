@@ -141,3 +141,5 @@ CHANNEL_LAYERS = {
         },
     },
 }
+
+# AUTH_USER_MODEL = 'chat01.auth_user'

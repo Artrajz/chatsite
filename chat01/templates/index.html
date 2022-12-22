@@ -26,7 +26,7 @@
         {% endif %}
     </div>
     <div class="form-inline">
-        <input type="text" class="form-control" placeholder="请输入群号或用户名" id="group">
+        <input type="text" class="form-control" placeholder="请输入群号或用户名" id="talker">
         <input type="button" class="btn btn-default" value="连接socket" id="socketConn">
         <input type="button" class="btn btn-default" value="关闭socket" id="closeConn">
         <input type="button" class="btn btn-default" value="登录" id="login">
@@ -45,7 +45,7 @@
 
     var socket;
     var session;
-    var group;
+    var talker;
 
     $(document).ready(function () {
 
@@ -55,11 +55,11 @@
                 return ;
             }
             session = "{{ session }}";
-            socket = new WebSocket("ws://127.0.0.1:8000/group/" + session + "/")
+            socket = new WebSocket("ws://127.0.0.1:8000/channel/" + session + "/")
 
             //创建好连接之后自动触发
             socket.onopen = function (event) {
-                group = $("#group").val()
+                talker = $("#talker").val()
                 $("#message").text($("#message").text() + "[连接成功 session:" + session + "]" + "\n")
                 $('#message').scrollTop($('#message')[0].scrollHeight);
 
@@ -75,7 +75,6 @@
             }
 
             socket.onclose = function (event) {
-                group = $("#group").val();
                 $("#message").text($("#message").text() + "[断开连接 session:" + session + "]" + "\n")
                 $('#message').scrollTop($('#message')[0].scrollHeight);
             }
@@ -85,7 +84,7 @@
             let message = $("#txt").val()
             let json = JSON.stringify({
                 "message":message,
-                "group":$("#group").val(),
+                "talker":$("#talker").val(),
             }).toString();
             socket.send(json);
             $("#txt").val("")
