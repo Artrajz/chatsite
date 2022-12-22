@@ -61,11 +61,19 @@ class ChatConsumers(WebsocketConsumer):
                 connectors[talker], {"type": "chat.message", "message": msg}
             )
 
+        # user_id = User.objects.get(username=self.user).id
+        # talker_type = data["talker_type"]
+        # talker_id = talker
+        # create_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+        # content = data["message"]
+        #
+        # print(user_id,talker_type,talker_id,create_time,content)
+
         #消息存入数据库
         db_message = message(
             user_id = User.objects.get(username=self.user).id,
             talker_type = data["talker_type"],
-            talker_id = talker,
+            talker_id_id = talker,
             create_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"),
             content = data["message"],
         )

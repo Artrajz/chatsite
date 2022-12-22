@@ -23,7 +23,7 @@ class contactors(models.Model):
 class message(models.Model):
     user_id = models.IntegerField()
     talker_type = models.SmallIntegerField()
-    talker_id = models.IntegerField()
+    talker_id = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,default="")
     create_time = models.DateTimeField()
     content = models.TextField()
 
