@@ -21,9 +21,9 @@ class contactors(models.Model):
 
 
 class message(models.Model):
-    user_id = models.IntegerField()
+    user_id = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name = 'user_id_id',default="")
     talker_type = models.SmallIntegerField()
-    talker_id = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,default="")
+    talker_id = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name = 'talker_id_id',default="")
     create_time = models.DateTimeField()
     content = models.TextField()
 

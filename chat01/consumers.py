@@ -11,7 +11,7 @@ from django.contrib.auth.models import User
 
 User = get_user_model()
 
-
+connectors = {}
 
 class ChatConsumers(WebsocketConsumer):
     # *args, **kwargs 前者叫位置参数，后者叫关键字参数
@@ -20,7 +20,7 @@ class ChatConsumers(WebsocketConsumer):
         self.user = None
         self.channel = None
         self.user_id = None
-        self.connectors = {}
+        
         self.groups = {}
 
     # 进行websocket连接
@@ -35,7 +35,7 @@ class ChatConsumers(WebsocketConsumer):
         self.user_id = str(User.objects.get(username=self.user).id)
 
         #映射用户id和socket通道
-        self.connectors[self.user_id] = self.channel
+        connectors[self.user_id] = self.channel
         self.groups = {}
 
         object_group_list = group_list.objects.all().filter()
@@ -47,7 +47,7 @@ class ChatConsumers(WebsocketConsumer):
                 self.groups[str(item.group_id)].append(str(i.user_id))
 
         async_to_sync(self.channel_layer.group_add)(
-            self.connectors[self.user_id], self.channel_name
+            connectors[self.user_id], self.channel_name
         )
 
 
@@ -57,7 +57,7 @@ class ChatConsumers(WebsocketConsumer):
     # 断开websocket连接
     def disconnect(self, close_code):
         async_to_sync(self.channel_layer.group_discard)(
-            self.connectors[self.user_id], self.channel_name
+            connectors[self.user_id], self.channel_name
         )
         raise StopConsumer
 
@@ -66,36 +66,43 @@ class ChatConsumers(WebsocketConsumer):
         #data={"message":,"talker":,}
         data = json.loads(text_data)
 
+        #获取接受方的id
         talker = data.get("talker")
 
         #username发送用户，message发送信息,talker接收对象
         msg = {"username": self.user,"message":data["message"]}
-
+        msg["success"] = "201"#成功接收
         #如果接受对象是联系人
-        if data["talker_type"] == "1":
+        if str(data["talker_type"]) == "1":
             #检测接收信息的用户是否在线，若在线就发送信息
-            if self.connectors.get(data.get("talker")) and self.connectors.get(data.get("talker")) != "":
+            if connectors.get(data.get("talker")) and connectors.get(data.get("talker")) != "":
                 async_to_sync(self.channel_layer.group_send)(
-                    self.connectors[talker], {"type": "chat.message", "message": msg}
+                    connectors[talker], {"type": "chat.message", "message": msg}
                 )
-        elif data["talker_type"] == "2":
+        elif str(data["talker_type"]) == "2":
             for i in self.groups[data.get("talker")]:
-                if i != self.user_id:
-                    async_to_sync(self.channel_layer.group_send)(
-                        self.connectors[i], {"type": "chat.message", "message": msg}
+                # 检测接收信息的用户是否在线，若在线就发送信息
+                if connectors.get(data.get(i)) and connectors.get(data.get(i)) != "":
+                    if i != self.user_id:
+                        async_to_sync(self.channel_layer.group_send)(
+                            connectors[i], {"type": "chat.message", "message": msg}
                     )
+        msg["success"] = "200"#成功发送
+        async_to_sync(self.channel_layer.group_send)(
+            connectors[self.user_id], {"type": "chat.message", "message": msg}
+        )
 
-        # user_id = User.objects.get(username=self.user).id
+        # user_id_id = User.objects.get(username=self.user).id
         # talker_type = data["talker_type"]
         # talker_id = talker
         # create_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
         # content = data["message"]
         #
-        # print(user_id,talker_type,talker_id,create_time,content)
+        # print(user_id_id,talker_type,talker_id,create_time,content)
 
         #消息存入数据库
         db_message = message(
-            user_id = self.user_id,
+            user_id_id = self.user_id,
             talker_type = data["talker_type"],
             talker_id_id = talker,
             create_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"),

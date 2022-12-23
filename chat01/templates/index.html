@@ -14,45 +14,75 @@
 <body>
 {% csrf_token %}
 <div class="container">
-    <div class="status inline_label">
-        <span>状态:</span>
-        <span style="color: red" id="readyState">离线</span>
-        {% if username is not None %}
-            <span>当前用户：</span>
-            <span>{{ username }}</span>
-        {% else %}
-            <span>当前用户：</span>
-            <span>未登录</span>
-        {% endif %}
-    </div>
-    <div class="form-inline">
-        <input type="text" class="form-control" placeholder="请输入群号或用户名" id="talker">
-        <input type="button" class="btn btn-default" value="添加好友" id="addTalker_type1">
-        <input type="button" class="btn btn-default" value="添加群组" id="addTalker_type2">
-        <input type="button" class="btn btn-default" value="创建群组" id="create_group">
-    </div>
-    <div class="form-inline">
-        <input type="button" class="btn btn-default" value="连接socket" id="socketConn">
-        <input type="button" class="btn btn-default" value="关闭socket" id="closeConn">
-        <input type="button" class="btn btn-default" value="登录" id="login">
-        <input type="button" class="btn btn-default" value="登出" id="logout">
-    </div>
-    <div class="user_list">
-        <div>好友列表</div>
-        {% for i in contactors %}
-            <input type="button" class="talker_list btn btn-default" title="{{ i.0 }}" name="1" value="{{ i.1 }}">
-        {% endfor %}
+    <div class="leftSide">
+        <div class="status inline_label">
+            <span>状态:</span>
+            <span style="color: red" id="readyState">离线</span>
+            {% if username is not None %}
+                <span>当前用户：</span>
+                <span>{{ username }}</span>
+            {% else %}
+                <span>当前用户：</span>
+                <span>未登录</span>
+            {% endif %}
+        </div>
+        <div class="form-inline">
+            <input type="text" class="form-control" placeholder="请输入用户名或群名称" id="talker">
+            <input type="button" class="btn btn-default" value="添加好友" id="addTalker_type1">
+            <input type="button" class="btn btn-default" value="添加群组" id="addTalker_type2">
+            <input type="button" class="btn btn-default" value="创建群组" id="create_group">
+        </div>
+        <div class="user_list">
+            <div class="friend_list">好友列表</div>
+            <ul>
+                {% for i in contactors %}
+                    <li class="talker_list" tabindex="1">
+                        <div class="user_id">{{ i.0 }}</div>
+                        <div class="talker_type">1</div>
+                        <div class="user_head"><img src=""/></div>
+                        <div class="user_text">
+                            <p class="user_name">{{ i.1 }}</p>
+                            <p class="user_message"></p>
+                        </div>
+                        <div class="user_time"></div>
+                    </li>
+                {% endfor %}
+            </ul>
+            <div class="group_list">群组列表</div>
+            <ul>
+                {% for i in groups %}
+                    <li class="talker_list" tabindex="1">
+                        <div class="user_id">{{ i.0 }}</div>
+                        <div class="talker_type">2</div>
+                        <div class="user_head"><img src=""/></div>
+                        <div class="user_text">
+                            <p class="user_name">{{ i.1 }}</p>
+                            <p class="user_message"></p>
+                        </div>
+                        <div class="user_time"></div>
+                    </li>
+                {% endfor %}
+            </ul>
 
-        <div>群组列表</div>
-        {% for i in groups %}
-            <input type="button" class="talker_list btn btn-default" title="{{ i.0 }}" name="2" value="{{ i.1 }}">
-        {% endfor %}
 
-
+        </div>
     </div>
-    <textarea class="message" id="message" readonly></textarea>
-    <div><textarea type="text" class="form-control" placeholder="请输入" id="txt" rows="3"></textarea>
-        <input type="button" class="btn btn-default" value="发送" id="sendMessage">
+    <div class="rightSide">
+
+        <div class="form-inline">
+            <input type="button" class="btn btn-default" value="连接socket" id="socketConn">
+            <input type="button" class="btn btn-default" value="关闭socket" id="closeConn">
+            <input type="button" class="btn btn-default" value="登录" id="login">
+            <input type="button" class="btn btn-default" value="登出" id="logout">
+        </div>
+
+
+        <h3 class="talker_name">未选择聊天对象</h3>
+        <div class="message" id="message"></div>
+        <div class="input_box">
+            <textarea type="text" class="form-control" placeholder="请输入" id="txt" rows="3"></textarea>
+            <input type="button" class="btn btn-default" value="发送" id="sendMessage">
+        </div>
     </div>
 </div>
 
@@ -76,12 +106,11 @@
             socket = new WebSocket("ws://127.0.0.1:8000/channel/" + session + "/");
             readyState = true;
 
-            $("#readyState").text("在线")
-            $("#readyState").css("color", "#07c160")
 
             //创建好连接之后自动触发
             socket.onopen = function (event) {
-                $('#message').scrollTop($('#message')[0].scrollHeight);
+                $("#readyState").text("在线")
+                $("#readyState").css("color", "#07c160")
 
             }
 
@@ -89,8 +118,19 @@
             socket.onmessage = function (event) {
                 let tag = document.createElement("div");
                 msg = JSON.parse(event.data);
-                $("#message").text($("#message").text() + msg.username + ":" + msg.message + "\n")
-                $('#message').scrollTop($('#message')[0].scrollHeight);
+                if (msg.success == "200") {
+                    //成功发送
+                    div = "<ul class=\"content\" id=\"chatbox\"> <li class=\"me\"><img src=\"{% get_static_prefix %}img/head/head_{{ username }}.jpg\" title=\"{{ username }}\"><span>" + msg.message + "</span></li>"
+                    {#$("#message").append("<div>" + "{{ username }}" + ":" + msg.message + "</div>")#}
+                    $("#message").append(div)
+                    $('#message').scrollTop($('#message')[0].scrollHeight);
+                } else if (msg.success == "201") {
+                    div = "<ul class=\"content\" id=\"chatbox\"> <li class=\"other\"><img src=\"{% get_static_prefix %}img/head/head_" + msg.username + ".jpg\" title=\"" + msg.username + "\"><span>" + msg.message + "</span></li>"
+                    //成功接收
+                    $("#message").append(div)
+                    $('#message').scrollTop($('#message')[0].scrollHeight);
+                }
+
 
             }
 
@@ -98,7 +138,6 @@
                 readyState = false
                 $("#readyState").text("离线")
                 $("#readyState").css("color", "red")
-                $('#message').scrollTop($('#message')[0].scrollHeight);
             }
         })
 
@@ -110,7 +149,7 @@
                 data: {
                     "csrfmiddlewaretoken": csrftoken,
                     "user_id": "{{ user_id }}",
-                    "talker_type": 1,
+                    "talker_type": '1',
                     "talker": $("#talker").val(),
                 },
                 success: function (data) {
@@ -138,7 +177,7 @@
                 data: {
                     "csrfmiddlewaretoken": csrftoken,
                     "user_id": "{{ user_id }}",
-                    "talker_type": 2,
+                    "talker_type": '2',
                     "talker": $("#talker").val(),
                 },
                 success: function (data) {
@@ -198,7 +237,7 @@
             }).toString();
             socket.send(json);
             $("#txt").val("")
-            $("#message").text($("#message").text() + "{{ username }}" + ":" + message + "\n")
+            {#$("#message").text($("#message").text() + "{{ username }}" + ":" + message + "\n")#}
             $('#message').scrollTop($('#message')[0].scrollHeight);
         })
 
@@ -227,9 +266,50 @@
         })
 
         $(".talker_list").click(function () {
-            talker = $(this).attr("title")
-            talker_type = $(this).attr("name")
+            talker = $(this).find(".user_id").text()
+            talker_type = $(this).find(".talker_type").text()
+            talker_name = $(this).find(".user_name").text()
+            $(".talker_name").text(talker_name)
+            //console.log(talker_type)
+
+            $("#message").text("")
+            {% for i in history %}
+                h_user_id = "{{ i.0 }}";
+                h_username = "{{ i.1 }}";
+                h_talker_type = "{{ i.2 }}";
+                h_talker_id = "{{ i.3 }}";
+                h_talker_name = "{{ i.4 }}"
+                h_create_time = "{{ i.5 }}";
+                h_content = "{{ i.6 }}";
+                if (talker_type == "1") {
+                    if (h_user_id == {{ user_id }} && h_talker_id == talker) {
+                        div = "<ul class=\"content\" id=\"chatbox\"> <li class=\"me\"><img src=\"{% get_static_prefix %}img/head/head_{{ username }}.jpg\" title=\"{{ username }}\"><span>" + h_content + "</span></li>"
+                        $("#message").append(div)
+                    } else if (h_user_id == talker && h_talker_id == {{ user_id }}) {
+                        div = "<ul class=\"content\" id=\"chatbox\"> <li class=\"other\"><img src=\"{% get_static_prefix %}img/head/head_" + talker_name + ".jpg\" title=\"" + talker_name + "\"><span>" + h_content + "</span></li>"
+                        $("#message").append(div)
+                    }
+                    //console.log(h_user_id,h_talker_type,h_talker_id,h_create_time,h_content)
+
+
+                } else if ((talker_type == "2")) {
+                    if (h_user_id == {{ user_id }} && h_talker_id == talker) {
+                        div = "<ul class=\"content\" id=\"chatbox\"> <li class=\"me\"><img src=\"{% get_static_prefix %}img/head/head_{{ username }}.jpg\" title=\"{{ username }}\"><span>" + h_content + "</span></li>"
+                        $("#message").append(div)
+                    } else if ( h_talker_id == talker) {
+                        div = "<ul class=\"content\" id=\"chatbox\"> <li class=\"other\"><img src=\"{% get_static_prefix %}img/head/head_" + h_username + ".jpg\" title=\"" + h_username + "\"><span>" + h_content + "</span></li>"
+                        $("#message").append(div)
+                    }
+
+                }
+
+
+            {% endfor %}
+            $('#message').scrollTop($('#message')[0].scrollHeight);
+
         })
+
+
     })
 
 

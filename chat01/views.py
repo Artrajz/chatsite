@@ -3,6 +3,7 @@ import json
 from django.contrib import auth
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
+from django.db.models import Q
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, HttpResponse, redirect
 from chat01.models import contactors
@@ -24,9 +25,27 @@ def index(request):
         friend = contactors.objects.filter(user_id=user_id)
         # 获取群组数据
         groups = group.objects.filter(user_id=user_id)
+        data["groups"] = []
+        for item in groups:
+            data["groups"].append([item.group_id_id, item.group_id.group_name])
+
         # 获取cookie
         cookies = request.COOKIES
         sessionid = cookies["sessionid"]
+
+        #读取聊天记录
+        historys = []
+        historys.append(message.objects.filter(Q(talker_type=1) &(Q(user_id=user_id) | Q(talker_id_id=user_id))).order_by('create_time'))
+
+        for i in data["groups"]:
+            historys.append(message.objects.filter(Q(talker_type=2) & Q(talker_id=i[0])).order_by('create_time'))
+
+        data["history"] = []
+        for history in historys:
+            for item in history:
+                data["history"].append([item.user_id_id,item.user_id.username,item.talker_type,item.talker_id_id,item.talker_id.username,item.create_time,item.content])
+                print([item.user_id_id,item.user_id.username,item.talker_type,item.talker_id_id,item.talker_id.username,item.create_time,item.content])
+
 
         # 数据
         data["username"] = username
@@ -35,9 +54,8 @@ def index(request):
         data["contactors"] = []
         for item in friend:
             data["contactors"].append([item.friend_id.id, item.friend_id.username])
-        data["groups"] = []
-        for item in groups:
-            data["groups"].append([item.group_id_id, item.group_id.group_name])
+
+
 
     return render(request, "index.html", data)
 
