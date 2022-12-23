@@ -11,6 +11,7 @@ from django.contrib.auth.models import User
 
 User = get_user_model()
 connectors = {}
+groups = {}
 
 class ChatConsumers(WebsocketConsumer):
     # *args, **kwargs 前者叫位置参数，后者叫关键字参数
@@ -18,6 +19,7 @@ class ChatConsumers(WebsocketConsumer):
         super().__init__(args, kwargs)
         self.user = None
         self.channel = None
+        self.user_id = None
 
     # 进行websocket连接
     def connect(self):
@@ -27,11 +29,14 @@ class ChatConsumers(WebsocketConsumer):
         # 获取用户名，需要字符串化，原本是channels.auth.UserLazyObject类型
         self.user = str(self.scope["user"])
 
-        #映射用户名和socket通道
-        connectors[self.user] = self.channel
+        #获取用户id
+        self.user_id = str(User.objects.get(username=self.user).id)
+
+        #映射用户id和socket通道
+        connectors[self.user_id] = self.channel
 
         async_to_sync(self.channel_layer.group_add)(
-            connectors[self.user], self.channel_name
+            connectors[self.user_id], self.channel_name
         )
 
 
@@ -41,7 +46,7 @@ class ChatConsumers(WebsocketConsumer):
     # 断开websocket连接
     def disconnect(self, close_code):
         async_to_sync(self.channel_layer.group_discard)(
-            connectors[self.user], self.channel_name
+            connectors[self.user_id], self.channel_name
         )
         raise StopConsumer
 
@@ -71,7 +76,7 @@ class ChatConsumers(WebsocketConsumer):
 
         #消息存入数据库
         db_message = message(
-            user_id = User.objects.get(username=self.user).id,
+            user_id = self.user_id,
             talker_type = data["talker_type"],
             talker_id_id = talker,
             create_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"),

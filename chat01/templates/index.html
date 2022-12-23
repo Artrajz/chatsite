@@ -74,7 +74,6 @@
 
             //创建好连接之后自动触发
             socket.onopen = function (event) {
-                talker = $("#talker").val()
                 $("#message").text($("#message").text() + "[连接成功 session:" + session + "]" + "\n")
                 $('#message').scrollTop($('#message')[0].scrollHeight);
 
@@ -136,6 +135,7 @@
                 success: function (data) {
                     if (data.success == '200') {
                         alert("添加成功！")
+                        window.location.href = "/index/"
                     } else if (data.success == '201') {
                         alert("添加失败！")
                     } else if (data.success == '202') {
@@ -161,6 +161,7 @@
                 success: function (data) {
                     if (data.success == '200') {
                         alert("成功创建群组：" + $("#talker").val())
+                        window.location.href = "/index/"
                     } else if (data.success == '201') {
                         alert("创建失败！")
                     } else if (data.success == '202') {
