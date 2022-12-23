@@ -112,7 +112,7 @@ ul li .user_id, .talker_type {
     font-size: 12px;
 }
 
-.message {
+.message, .index_message {
     width: 100%;
     height: 300px;
     border: 1px solid #dddddd;

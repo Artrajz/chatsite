@@ -44,7 +44,7 @@ def index(request):
         for history in historys:
             for item in history:
                 data["history"].append([item.user_id_id,item.user_id.username,item.talker_type,item.talker_id_id,item.talker_id.username,item.create_time,item.content])
-                print([item.user_id_id,item.user_id.username,item.talker_type,item.talker_id_id,item.talker_id.username,item.create_time,item.content])
+                # print([item.user_id_id,item.user_id.username,item.talker_type,item.talker_id_id,item.talker_id.username,item.create_time,item.content])
 
 
         # 数据

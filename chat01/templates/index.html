@@ -78,7 +78,17 @@
 
 
         <h3 class="talker_name">未选择聊天对象</h3>
-        <div class="message" id="message"></div>
+        <div class="index_message"></div>
+        {% for i in contactors %}
+
+            <div class="message contactor {{ i.0 }}" id="message"></div>
+
+        {% endfor %}
+        {% for i in groups %}
+
+            <div class="message group_msg {{ i.0 }}" id="message"></div>
+
+        {% endfor %}
         <div class="input_box">
             <textarea type="text" class="form-control" placeholder="请输入" id="txt" rows="3"></textarea>
             <input type="button" class="btn btn-default" value="发送" id="sendMessage">
@@ -93,8 +103,12 @@
     var session;
     var talker = "";
     var talker_type = "";
+    var talker_name = "";
     var readyState = false;
+    var history_read = false;
 
+
+    $(".message").hide()
     $(document).ready(function () {
 
         $("#socketConn").click(function () {
@@ -272,39 +286,51 @@
             $(".talker_name").text(talker_name)
             //console.log(talker_type)
 
-            $("#message").text("")
-            {% for i in history %}
-                h_user_id = "{{ i.0 }}";
-                h_username = "{{ i.1 }}";
-                h_talker_type = "{{ i.2 }}";
-                h_talker_id = "{{ i.3 }}";
-                h_talker_name = "{{ i.4 }}"
-                h_create_time = "{{ i.5 }}";
-                h_content = "{{ i.6 }}";
-                if (talker_type == "1") {
-                    if (h_user_id == {{ user_id }} && h_talker_id == talker) {
-                        div = "<ul class=\"content\" id=\"chatbox\"> <li class=\"me\"><img src=\"{% get_static_prefix %}img/head/head_{{ username }}.jpg\" title=\"{{ username }}\"><span>" + h_content + "</span></li>"
-                        $("#message").append(div)
-                    } else if (h_user_id == talker && h_talker_id == {{ user_id }}) {
-                        div = "<ul class=\"content\" id=\"chatbox\"> <li class=\"other\"><img src=\"{% get_static_prefix %}img/head/head_" + talker_name + ".jpg\" title=\"" + talker_name + "\"><span>" + h_content + "</span></li>"
-                        $("#message").append(div)
+            $(" .index_message").hide()
+            $(".message").hide()
+            if (talker_type == "1") {
+                $(".contactor" + "." + talker).show()
+            } else if (talker_type == "2") {
+                $(".group_msg" + "." + talker).show()
+            }
+
+            if (history_read == false) {
+                {% for i in history %}
+                    h_user_id = "{{ i.0 }}";
+                    h_username = "{{ i.1 }}";
+                    h_talker_type = "{{ i.2 }}";
+                    h_talker_id = "{{ i.3 }}";
+                    h_talker_name = "{{ i.4 }}"
+                    h_create_time = "{{ i.5 }}";
+                    h_content = "{{ i.6 }}";
+                    if (h_talker_type == "1") {
+                        if (h_user_id == {{ user_id }}) {
+                            div = "<ul class=\"content\" id=\"chatbox\"> <li class=\"me\"><img src=\"{% get_static_prefix %}img/head/head_{{ username }}.jpg\" title=\"{{ username }}\"><span>" + h_content + "</span></li>"
+                            $(".contactor" + "." + h_talker_id).append(div)
+                        } else if (h_talker_id == {{ user_id }}) {
+                            div = "<ul class=\"content\" id=\"chatbox\"> <li class=\"other\"><img src=\"{% get_static_prefix %}img/head/head_" + h_username + ".jpg\" title=\"" + h_username + "\"><span>" + h_content + "</span></li>"
+                            $(".contactor" + "." + h_user_id).append(div)
+                        }
+                        //console.log(h_user_id,h_talker_type,h_talker_id,h_create_time,h_content)
+
+
                     }
-                    //console.log(h_user_id,h_talker_type,h_talker_id,h_create_time,h_content)
+                    else if (h_talker_type == "2") {
+                        if (h_user_id == {{ user_id }}) {
+                            div = "<ul class=\"content\" id=\"chatbox\"> <li class=\"me\"><img src=\"{% get_static_prefix %}img/head/head_{{ username }}.jpg\" title=\"{{ username }}\"><span>" + h_content + "</span></li>"
+                            $(".group_msg" + "." + h_talker_id).append(div)
+                        } else {
+                            div = "<ul class=\"content\" id=\"chatbox\"> <li class=\"other\"><img src=\"{% get_static_prefix %}img/head/head_" + h_username + ".jpg\" title=\"" + h_username + "\"><span>" + h_content + "</span></li>"
+                            $(".group_msg" + "." + h_talker_id).append(div)
+                        }
 
-
-                } else if ((h_talker_type == "2")) {
-                    if (h_user_id == {{ user_id }} && h_talker_id == talker) {
-                        div = "<ul class=\"content\" id=\"chatbox\"> <li class=\"me\"><img src=\"{% get_static_prefix %}img/head/head_{{ username }}.jpg\" title=\"{{ username }}\"><span>" + h_content + "</span></li>"
-                        $("#message").append(div)
-                    } else if ( h_talker_id == talker) {
-                        div = "<ul class=\"content\" id=\"chatbox\"> <li class=\"other\"><img src=\"{% get_static_prefix %}img/head/head_" + h_username + ".jpg\" title=\"" + h_username + "\"><span>" + h_content + "</span></li>"
-                        $("#message").append(div)
                     }
 
-                }
 
+                {% endfor %}
+                history_read = true
+            }
 
-            {% endfor %}
             $('#message').scrollTop($('#message')[0].scrollHeight);
 
         })
