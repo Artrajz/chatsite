@@ -6,12 +6,12 @@ from channels.generic.websocket import WebsocketConsumer
 from asgiref.sync import async_to_sync
 from django.contrib.auth import get_user_model
 
-from chat01.models import message
+from chat01.models import message, group_list,group
 from django.contrib.auth.models import User
 
 User = get_user_model()
-connectors = {}
-groups = {}
+
+
 
 class ChatConsumers(WebsocketConsumer):
     # *args, **kwargs 前者叫位置参数，后者叫关键字参数
@@ -20,6 +20,8 @@ class ChatConsumers(WebsocketConsumer):
         self.user = None
         self.channel = None
         self.user_id = None
+        self.connectors = {}
+        self.groups = {}
 
     # 进行websocket连接
     def connect(self):
@@ -33,10 +35,19 @@ class ChatConsumers(WebsocketConsumer):
         self.user_id = str(User.objects.get(username=self.user).id)
 
         #映射用户id和socket通道
-        connectors[self.user_id] = self.channel
+        self.connectors[self.user_id] = self.channel
+        self.groups = {}
+
+        object_group_list = group_list.objects.all().filter()
+        # 获取群组用户信息
+        for item in object_group_list:
+            object_group = group.objects.filter(group_id_id=item.group_id)
+            self.groups[str(item.group_id)] = []
+            for i in object_group:
+                self.groups[str(item.group_id)].append(str(i.user_id))
 
         async_to_sync(self.channel_layer.group_add)(
-            connectors[self.user_id], self.channel_name
+            self.connectors[self.user_id], self.channel_name
         )
 
 
@@ -46,7 +57,7 @@ class ChatConsumers(WebsocketConsumer):
     # 断开websocket连接
     def disconnect(self, close_code):
         async_to_sync(self.channel_layer.group_discard)(
-            connectors[self.user_id], self.channel_name
+            self.connectors[self.user_id], self.channel_name
         )
         raise StopConsumer
 
@@ -60,11 +71,19 @@ class ChatConsumers(WebsocketConsumer):
         #username发送用户，message发送信息,talker接收对象
         msg = {"username": self.user,"message":data["message"]}
 
-        #检测接收信息的用户是否在线，若在线就发送信息
-        if connectors.get(data.get("talker")) and connectors.get(data.get("talker")) != "":
-            async_to_sync(self.channel_layer.group_send)(
-                connectors[talker], {"type": "chat.message", "message": msg}
-            )
+        #如果接受对象是联系人
+        if data["talker_type"] == "1":
+            #检测接收信息的用户是否在线，若在线就发送信息
+            if self.connectors.get(data.get("talker")) and self.connectors.get(data.get("talker")) != "":
+                async_to_sync(self.channel_layer.group_send)(
+                    self.connectors[talker], {"type": "chat.message", "message": msg}
+                )
+        elif data["talker_type"] == "2":
+            for i in self.groups[data.get("talker")]:
+                if i != self.user_id:
+                    async_to_sync(self.channel_layer.group_send)(
+                        self.connectors[i], {"type": "chat.message", "message": msg}
+                    )
 
         # user_id = User.objects.get(username=self.user).id
         # talker_type = data["talker_type"]
