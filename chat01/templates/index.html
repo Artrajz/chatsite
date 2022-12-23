@@ -281,7 +281,6 @@
                 h_talker_name = "{{ i.4 }}"
                 h_create_time = "{{ i.5 }}";
                 h_content = "{{ i.6 }}";
-                console.log(talker_type,h_talker_type)
                 if (talker_type == "1") {
                     if (h_user_id == {{ user_id }} && h_talker_id == talker) {
                         div = "<ul class=\"content\" id=\"chatbox\"> <li class=\"me\"><img src=\"{% get_static_prefix %}img/head/head_{{ username }}.jpg\" title=\"{{ username }}\"><span>" + h_content + "</span></li>"
