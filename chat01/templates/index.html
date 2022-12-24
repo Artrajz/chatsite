@@ -132,17 +132,31 @@
             socket.onmessage = function (event) {
                 let tag = document.createElement("div");
                 msg = JSON.parse(event.data);
+                console.log(msg)
                 if (msg.success == "200") {
                     //成功发送
                     div = "<ul class=\"content\" id=\"chatbox\"> <li class=\"me\"><img src=\"{% get_static_prefix %}img/head/head_{{ username }}.jpg\" title=\"{{ username }}\"><span>" + msg.message + "</span></li>"
                     {#$("#message").append("<div>" + "{{ username }}" + ":" + msg.message + "</div>")#}
-                    $("#message").append(div)
-                    $('#message').scrollTop($('#message')[0].scrollHeight);
+                    if (msg.talker_type == '1') {
+                        $(".contactor" + "." + msg.talker).append(div)
+                        $(".contactor" + "." + msg.talker).scrollTop($(".contactor" + "." + msg.talker)[0].scrollHeight);
+                    } else if (msg.talker_type == '2') {
+                        $(".group_msg" + "." + msg.talker).append(div)
+                        $(".group_msg" + "." + msg.talker).scrollTop($(".group_msg" + "." + msg.talker)[0].scrollHeight);
+                    }
+
+
                 } else if (msg.success == "201") {
                     div = "<ul class=\"content\" id=\"chatbox\"> <li class=\"other\"><img src=\"{% get_static_prefix %}img/head/head_" + msg.username + ".jpg\" title=\"" + msg.username + "\"><span>" + msg.message + "</span></li>"
                     //成功接收
-                    $("#message").append(div)
-                    $('#message').scrollTop($('#message')[0].scrollHeight);
+                    if (msg.talker_type == '1') {
+                        $(".contactor" + "." + msg.user_id).append(div)
+                        $(".contactor" + "." + msg.user_id).scrollTop($(".contactor" + "." + msg.user_id)[0].scrollHeight);
+                    } else if (msg.talker_type == '2') {
+                        $(".group_msg" + "." + msg.talker).append(div)
+                        $(".group_msg" + "." + msg.talker).scrollTop($(".group_msg" + "." + msg.talker)[0].scrollHeight);
+
+                    }
                 }
 
 
@@ -248,11 +262,16 @@
                 "message": message,
                 "talker_type": talker_type,
                 "talker": talker,
+                "user_id":{{ user_id }},
             }).toString();
             socket.send(json);
             $("#txt").val("")
-            {#$("#message").text($("#message").text() + "{{ username }}" + ":" + message + "\n")#}
-            $('#message').scrollTop($('#message')[0].scrollHeight);
+            if (talker_type == '1') {
+                $(".contactor" + "." + talker).scrollTop($(".contactor" + "." + talker)[0].scrollHeight);
+            } else if (talker_type == '2') {
+                $(".group_msg" + "." + talker).scrollTop($(".group_msg" + "." + talker)[0].scrollHeight);
+            }
+
         })
 
         $("#closeConn").click(function () {
@@ -288,11 +307,6 @@
 
             $(" .index_message").hide()
             $(".message").hide()
-            if (talker_type == "1") {
-                $(".contactor" + "." + talker).show()
-            } else if (talker_type == "2") {
-                $(".group_msg" + "." + talker).show()
-            }
 
             if (history_read == false) {
                 {% for i in history %}
@@ -314,8 +328,7 @@
                         //console.log(h_user_id,h_talker_type,h_talker_id,h_create_time,h_content)
 
 
-                    }
-                    else if (h_talker_type == "2") {
+                    } else if (h_talker_type == "2") {
                         if (h_user_id == {{ user_id }}) {
                             div = "<ul class=\"content\" id=\"chatbox\"> <li class=\"me\"><img src=\"{% get_static_prefix %}img/head/head_{{ username }}.jpg\" title=\"{{ username }}\"><span>" + h_content + "</span></li>"
                             $(".group_msg" + "." + h_talker_id).append(div)
@@ -328,10 +341,19 @@
 
 
                 {% endfor %}
+
+
                 history_read = true
             }
+            if (talker_type == "1") {
+                $(".contactor" + "." + talker).show()
+                $(".contactor" + "." + talker).scrollTop($('.message')[0].scrollHeight);
+            } else if (talker_type == "2") {
+                $(".group_msg" + "." + talker).show()
+                $(".group_msg" + "." + talker).scrollTop($('.message')[0].scrollHeight);
 
-            $('#message').scrollTop($('#message')[0].scrollHeight);
+            }
+
 
         })
 
