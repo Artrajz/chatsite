@@ -2,7 +2,9 @@
 
 结构：Django+websocket+AJAX
 
+计算机网络课程设计，功能有：一对一聊天、群聊、添加好友、添加群组、创建群组、登录和注册、连接和断开websocket，使用mysql存储聊天记录，支持读取聊天记录。
 
+![image-20221224134234063](README.assets/image-20221224134234063.png)
 
 ## 使用
 
@@ -44,7 +46,13 @@
 │  │  │      FontAwesome.otf
 │  │  │
 │  │  ├─img
-│  │  │      logo.jpeg
+│  │  │  │  background.jpg
+│  │  │  │
+│  │  │  └─head
+│  │  │          head_12345.jpg
+│  │  │          head_aaa.jpg
+│  │  │          head_admin.jpg
+│  │  │          head_sss.jpg
 │  │  │
 │  │  ├─js
 │  │  │      bootstrap.min.js
@@ -57,15 +65,13 @@
 │          register.html
 │
 └─chatsite
-        asgi.py
-        routings.py
-        settings.py
-        urls.py
-        wsgi.py
-        __init__.py
+       asgi.py
+       routings.py
+       settings.py
+       urls.py
+       wsgi.py
+       __init__.py
 ```
-
-
 
 ### 拷贝项目到本地
 
@@ -91,6 +97,33 @@ cd 你的项目位置
 
 pip install -r requirements.txt
 pip install -U channels["daphne"]
+```
+
+### 配置数据库
+
+在setting.py中，找到DATABASES，配置自己的数据库
+
+### 配置CHANNEL_LAYERS
+
+在setting.py中，修改自己redis，也可以用非生产环境的CHANNEL_LAYERS（不推荐）
+
+```python
+#非生产环境
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels.layers.InMemoryChannelLayer"
+#     }
+# }
+
+#redis
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("192.168.31.38", 6379)],
+        },
+    },
+}
 ```
 
 ### 运行项目
