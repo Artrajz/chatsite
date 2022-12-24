@@ -145,7 +145,13 @@ def addTalker(request):
                         friend_id_id=friend_id,
                     )
                     db_contactors.save()
+                    db_contactors = contactors(
+                        user_id=friend_id,
+                        friend_id_id=user_id,
+                    )
+                    db_contactors.save()
                     message["success"] = "200"
+
             elif request.POST.get("talker_type") == "2":
                 user_id = request.POST.get("user_id")
 

@@ -347,10 +347,10 @@
             }
             if (talker_type == "1") {
                 $(".contactor" + "." + talker).show()
-                $(".contactor" + "." + talker).scrollTop($('.message')[0].scrollHeight);
+                $(".contactor" + "." + talker).scrollTop($(".contactor" + "." + talker)[0].scrollHeight);
             } else if (talker_type == "2") {
                 $(".group_msg" + "." + talker).show()
-                $(".group_msg" + "." + talker).scrollTop($('.message')[0].scrollHeight);
+                $(".group_msg" + "." + talker).scrollTop($(".group_msg" + "." + talker)[0].scrollHeight);
 
             }
 
