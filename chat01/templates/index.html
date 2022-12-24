@@ -10,8 +10,15 @@
 <script src="{% static 'js/bootstrap.min.js' %}"></script>
 <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
 <link rel="stylesheet" href="{% static 'css/index.css' %}">
-
-<body style="background-image: url('{% static 'img/background.jpg' %}')" >
+<style>
+    body {
+        background-image: url('{% static 'img/background.jpg' %}');
+        background-size: cover;
+        background-attachment: fixed;
+        background-color: #eeeeee;
+    }
+</style>
+<body>
 {% csrf_token %}
 <div class="container">
     <div class="leftSide">
